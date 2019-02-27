@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/shm.h>
+#include <sys/mman.h>
+#include <string.h>
+int main() {
+	const char *name = "/my_shm";
+	const int SIZE = 4096;
+	int shm_fd;
+	void *ptr;
+	/* open the shared memory segment */
+	shm_fd = shm_open(name, O_RDONLY, 0666);
+	if (shm_fd == -1) {
+		perror("in shm_open()");
+		exit(1);
+	}
+	/* now map the shared memory segment in the address space of the 
+process */
+	ptr = mmap(0,SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
+	if (ptr == MAP_FAILED) {
+		perror("in mmap()");
+		exit(1);
+	}
+	/* now read from the shared memory region */
+	printf("Content in the shared memory:\n");
+	printf("%s", ptr);
+
+	char c[100] = ptr;
+	printf("%s\n", c);
+
+	//char *firstToken = strtok(str, " ");
+	//while(firstToken != NULL){
+	//	printf("%s\n", firstToken);
+	//	firstToken = strtok(NULL, " ");
+	//}
+
+	return 0;
+}
