@@ -20,19 +20,6 @@ int main(){
 		char *speed;
 	};
 
-	shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-	if(shm_fd == -1){
-		perror("In shm_open()");
-		exit(1);
-	}
-
-	ftruncate(shm_fd, SHM_SIZE);
-
-	ptr = mmap(0, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-	if(ptr == MAP_FAILED){
-		printf("Map failed\n");
-		return -1;
-	}
 	struct message m;
 	char *robot1;
 	char *movement1;
@@ -47,9 +34,19 @@ int main(){
 	printf("type a robot speed (0 - 100): ");
 	scanf("%s", &speed1);
 	
-	//m.robot = robot1;
-	//m.movement = movement1;
-	//m.speed = speed1;
+	shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+	if(shm_fd == -1){
+		perror("In shm_open()");
+		exit(1);
+	}
+
+	ftruncate(shm_fd, SHM_SIZE);
+
+	ptr = mmap(0, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+	if(ptr == MAP_FAILED){
+		printf("Map failed\n");
+		return -1;
+	}
 
 	sprintf(ptr, "%s %s %s", &robot1, &movement1, &speed1);
 

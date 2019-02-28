@@ -80,7 +80,7 @@ int main() {
 	}
 
 	/* check to see if this robot name is the correct name */
-	if(strcmp("kane", robot) != 0){
+	if(strcmp("undertaker", robot) != 0){
 		printf("the command wasn't for this robot.\n");
 	} else {
 		/* if it is the correct name, clear the shared memory to get the next command ready */
