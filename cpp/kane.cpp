@@ -5,8 +5,9 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <unistd.h>
+#include "Aria.h"
 
-int main() {
+int main(int argc, char **argv) {
 	const char *name = "/my_shm";
 	const int SIZE = 4096;
 	int shm_fd;
@@ -89,20 +90,7 @@ int main() {
 		printf("robot: %s\n", robot);
 		printf("movement: %s\n", movement);
 		printf("speed: %s\n\n", speed);
-
-		if(strcmp("f",movement) == 0){
-			printf("move forward\n");
-		} else if(strcmp("b", movement) == 0){
-			printf("move backwards\n");
-		} else if(strcmp("l", movement) == 0){
-			printf("move left\n");
-		} else if(strcmp("r", movement) == 0){
-			printf("move right\n");
-		} else {
-			printf("not a valid movement\n");
-			return -1;
-		}
-
+		
 		int speed_numeric = atoi(speed);
 		if(speed_numeric < 0 || speed_numeric > 100){
 			printf("not a valid speed");
@@ -110,8 +98,55 @@ int main() {
 		} else{
 			printf("setting speed to %d\n", speed_numeric);
 		}
+
+		/* initialize Aria necessary methods */
+		Aria::init();
+		ArArgumentParser parser(&argc, argv);
+		parser.addDefaultArgument("-rh 10.0.126.14");
+		parser.loadDefaultArguments();
+		ArRobot myRobot;
+		ArSonarDevice sonar;
+		ArActionDesired myDesired;
+
+		ArRobotConnector robotConnector(&parser, &myRobot);
+		if(!robotConnector.connectRobot()){
+			printf("could not connect to robot");
+			return -1;
+		}
+
+		printf("\n\nconnected to robot \"kane\"\n\n");
+
+		myRobot.runAsync(true);
+		myRobot.enableMotors();
+
+		if(strcmp("f",movement) == 0){
+			printf("move forward\n");
+			myRobot.setVel((double)speed_numeric);
+		} else if(strcmp("b", movement) == 0){
+			printf("move backwards\n");
+			speed_numeric = 0 - speed_numeric;
+			myRobot.setVel((double)speed_numeric);
+		} else if(strcmp("r", movement) == 0){
+			printf("move right\n");
+			speed_numeric = 0 - speed_numeric;
+			myRobot.lock();
+			myRobot.setRotVel((double)speed_numeric);
+			myRobot.unlock();
+		} else if(strcmp("l", movement) == 0){
+			printf("move left\n");
+			myRobot.lock();
+			myRobot.setRotVel((double)speed_numeric);
+			myRobot.unlock();
+		} else {
+			printf("not a valid movement\n");
+			return -1;
+		}
+
+		ArUtil::sleep(5000);
+		myRobot.stopRunning();
+
 	}
 
-
+	Aria::shutdown();
 	return 0;
 }
