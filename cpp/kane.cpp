@@ -16,22 +16,27 @@ int main(int argc, char **argv) {
 	while(1){
 		printf("you're at the top!");
 		/* open the ddshared memory segment */
-		shm_fd = shm_open(name, O_RDONLY, 0666);
-		if (shm_fd == -1) {
+		if (!shm_open(name, O_RDONLY, 0666)) {
 			perror("shared memory is empty. continually trying to open...");
 			while(shm_fd == -1){
 				sleep(2);
 				perror("trying to open...");
-				shm_fd = shm_open(name, O_RDONLY, 0666);
-				shm_unlink(name);
+				if(shm_open(name, O_RDONLY, 0666)){
+					shm_unlink(name);
+					break;
+				} else{
+					shm_unlink(name);
+				}
 			}
 		}
+		shm_fd = shm_open(name, O_RDONLY, 0666);
 		
 		/* now map the shared memory segment in the address space of the process */
 		ptr = mmap(0,SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
 		if (ptr == MAP_FAILED) {
 			perror("in mmap()");
-			exit(1);
+			sleep(2);
+			continue;
 		}
 
 		/* now read from the shared memory region... */
@@ -107,7 +112,7 @@ int main(int argc, char **argv) {
 			/* initialize Aria necessary methods */
 			Aria::init();
 			ArArgumentParser parser(&argc, argv);
-			parser.addDefaultArgument("-rh 10.0.126.14");
+			parser.addDefaultArgument("-rh 10.0.126.17");
 			parser.loadDefaultArguments();
 			ArRobot myRobot;
 			ArSonarDevice sonar;
